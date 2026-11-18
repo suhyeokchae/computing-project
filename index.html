@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시심 온도계</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#12151f; --panel:#1b2030; --panel2:#232a3d; --ink:#ece6d8; --muted:#a9a293;
+  --line:#323a50; --accent:#e0b25c;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans KR',system-ui,sans-serif;font-size:15px;line-height:1.6}
+button,input,textarea{font:inherit;color:inherit}
+.serif{font-family:'Gowun Batang',serif}
+
+/* 상단 */
+header.top{padding:28px 24px 12px;max-width:1280px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px 32px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--accent);margin:0 0 4px}
+header h1{margin:0;font-family:'Gowun Batang',serif;font-size:34px;line-height:1.2}
+header .intro{margin:0;max-width:520px;color:var(--muted);font-size:14px}
+
+/* 시 목록 (F-01) */
+.barwrap{max-width:1280px;margin:0 auto;padding:0 24px}
+.label{font-size:12px;color:var(--muted);margin:10px 0 6px;letter-spacing:.05em}
+.poembar{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:6px}
+.chip{display:grid;grid-template-columns:auto 1fr;column-gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:7px 12px;text-align:left;cursor:pointer;min-width:120px}
+.chip:hover{background:var(--panel2)}
+.chip .dot{grid-row:1/3;align-self:center;width:10px;height:10px;border-radius:50%}
+.chip .ct{font-weight:700;font-size:14px}
+.chip .cm{font-size:12px;color:var(--muted)}
+.chip.on{background:var(--panel2);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+
+/* 도구 막대 (F-14, F-11) */
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 24px;padding:10px 0 4px}
+.slider{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.slider input{width:200px;accent-color:var(--accent)}
+.slider small{color:var(--muted)}
+.btn{background:var(--accent);color:#1b1608;border:0;border-radius:10px;padding:8px 16px;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+#lab{display:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin:6px 0 4px}
+#lab.open{display:grid;gap:8px}
+#lab input,#lab textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+#lab textarea{min-height:120px;resize:vertical}
+#lab .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#myMsg{color:var(--accent);font-size:13px;margin:0}
+
+/* 본문 그리드 */
+main.grid{max-width:1280px;margin:0 auto;padding:12px 24px 24px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;min-width:0}
+.card.wide{grid-column:1/-1}
+.card h2{font-family:'Gowun Batang',serif;font-size:20px;margin:0 0 2px}
+.card .sub{color:var(--muted);font-size:12px;margin:0 0 12px}
+.empty{color:var(--accent);background:var(--panel2);border-radius:10px;padding:12px 14px;margin:8px 0}
+
+/* 본문 보기 (F-02) */
+.ptitle{font-family:'Gowun Batang',serif;font-size:28px;margin:0}
+.pmeta{color:var(--muted);font-size:13px;margin:2px 0 14px}
+.poem{font-family:'Gowun Batang',serif;font-size:16px}
+.stz{margin:0 0 14px}
+.ln{display:block;padding-left:28px;text-indent:-28px}
+.ln i{display:inline-block;width:28px;text-indent:0;font-style:normal;font-family:'Noto Sans KR',sans-serif;font-size:11px;color:var(--muted)}
+mark{background:none;color:inherit;border-bottom:3px solid var(--c);padding:0 1px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin-top:6px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--c);margin-right:5px;vertical-align:-1px}
+.legend .dash::before{height:0;border-top:2px dashed var(--c);background:none}
+.src{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px;margin-top:10px}
+
+/* 지배 정서 · 비율 (F-03, F-05) */
+.dom{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.dom b{font-family:'Gowun Batang',serif;font-size:28px}
+.pill{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:2px 10px}
+.bars{display:grid;gap:5px;margin:12px 0 4px}
+.bar{display:grid;grid-template-columns:84px 1fr 40px;align-items:center;gap:8px;font-size:13px}
+.bar .tr{height:10px;background:var(--panel2);border-radius:6px;overflow:hidden}
+.bar .fill{height:100%;border-radius:6px}
+.bar .v{text-align:right;color:var(--muted)}
+.sum{font-size:12px;color:var(--muted);text-align:right}
+dl.meta{display:grid;grid-template-columns:52px 1fr;gap:4px 10px;font-size:13px;margin:12px 0}
+dl.meta dt{color:var(--muted)}
+dl.meta dd{margin:0}
+.interp{font-size:14px;margin:6px 0}
+blockquote{margin:12px 0 4px;border-left:3px solid var(--accent);padding:4px 12px;font-family:'Gowun Batang',serif}
+.method{font-size:12px;color:var(--muted)}
+
+/* 차트 */
+.chartbox{overflow-x:auto}
+svg text{fill:var(--ink);font-family:'Noto Sans KR',sans-serif}
+svg .mut{fill:var(--muted)}
+details{margin-top:10px;font-size:13px}
+summary{cursor:pointer;color:var(--accent)}
+.ltab{width:100%;border-collapse:collapse;margin-top:6px}
+.ltab td,.ltab th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+.ltab th{color:var(--muted);font-weight:500}
+.tag{display:inline-block;font-size:11px;border-radius:6px;padding:0 6px;margin:1px 2px;color:#111}
+
+/* 추천 (F-09) */
+.recs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.rec{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;cursor:pointer}
+.rec:hover{border-color:var(--accent)}
+.rec .rk{font-size:11px;color:var(--accent)}
+.rec h3{font-family:'Gowun Batang',serif;margin:2px 0;font-size:18px}
+.rec .rm{font-size:12px;color:var(--muted)}
+.rec .simbar{height:6px;background:var(--bg);border-radius:4px;margin:8px 0 4px}
+.rec .simbar div{height:100%;background:var(--accent);border-radius:4px}
+
+/* 히트맵 (F-10) */
+.heatwrap{overflow-x:auto}
+table.heat{border-collapse:separate;border-spacing:3px;min-width:680px;width:100%;font-size:13px}
+table.heat th{font-weight:500;color:var(--muted);padding:4px;white-space:nowrap}
+table.heat td{text-align:center;border-radius:6px;padding:6px 4px;min-width:52px}
+table.heat td.name{text-align:left;white-space:nowrap;cursor:pointer;color:var(--ink)}
+table.heat tr.on td.name{color:var(--accent);font-weight:700}
+table.heat tbody tr{cursor:pointer}
+
+footer{max-width:1280px;margin:0 auto;padding:8px 24px 40px;color:var(--muted);font-size:12px}
+
+@media (max-width:768px){
+  header.top{padding:20px 16px 8px}
+  header h1{font-size:28px}
+  .barwrap{padding:0 16px}
+  .poembar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .chip{flex:0 0 auto}
+  main.grid{grid-template-columns:1fr;padding:12px 16px 24px}
+  .card.wide{grid-column:auto}
+  .recs{grid-template-columns:1fr}
+  .slider input{width:150px}
+  footer{padding:8px 16px 32px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <p class="eyebrow">감성컴퓨팅 · 한국 근대시 감정 분석</p>
+    <h1>시심(詩心) 온도계</h1>
+  </div>
+  <p class="intro">한국 근대시 15편을 8가지 정서로 나누어 재어 봅니다. 감정 사전으로 찾은 시어와 해석 기반 프로필을 섞어 정서 비율, 행별 흐름, 비슷한 시를 보여 줍니다.</p>
+</header>
+
+<div class="barwrap">
+  <p class="label">시 목록 · 점 색은 그 시의 지배 정서</p>
+  <nav id="poemBar" class="poembar" aria-label="시 목록"></nav>
+
+  <div class="toolbar">
+    <div class="slider">
+      <label for="wRange">감정 사전 반영 비율 <b id="wVal">50%</b></label>
+      <input id="wRange" type="range" min="0" max="100" step="10" value="50">
+      <small>해석 프로필 × (1−w) + 감정 사전 × w</small>
+    </div>
+    <button id="openLab" class="btn ghost" type="button">✍ 내 시 분석하기</button>
+  </div>
+
+  <div id="lab">
+    <input id="myTitle" placeholder="제목 (예: 엄마야 누나야)">
+    <textarea id="myText" placeholder="시 본문을 입력하세요. 행은 줄바꿈, 연은 빈 줄로 구분합니다."></textarea>
+    <div class="row">
+      <button id="runMy" class="btn" type="button">분석하기</button>
+      <p id="myMsg">직접 입력한 시는 감정 사전만으로 분석하고, 수록 15편 중 비슷한 시를 추천합니다.</p>
+    </div>
+  </div>
+</div>
+
+<main class="grid">
+  <section class="card" id="cText"></section>
+  <section class="card" id="cSum"></section>
+  <section class="card" id="cRadar"></section>
+  <section class="card" id="cFlow"></section>
+  <section class="card wide" id="cDiagram"></section>
+  <section class="card wide" id="cRec"></section>
+  <section class="card wide" id="cHeat"></section>
+</main>
+
+<footer>
+  <p>수록 작품 15편은 모두 시인이 1962년 이전에 세상을 떠나 저작권 보호 기간이 끝난 작품입니다. 본문은 각 작품에 적힌 출처를 바탕으로 현대어 표기로 옮겼습니다. 감정 분석 결과는 감정 사전과 해석 프로필로 계산한 참고값이며, 문학적 해석을 대신하지 않습니다.</p>
+</footer>
+
+<noscript><p style="padding:16px">이 웹앱은 JavaScript가 필요합니다.</p></noscript>
+
+<script>
+/* =========================================================
+   1. 감정 범주 (Emotion) — 8개
+   ========================================================= */
+const EMOS = [
+  {k:'sorrow',  name:'슬픔',      def:'잃어버림이나 이별 때문에 마음이 아프고 무너지는 정서', color:'#5b9cf0'},
+  {k:'longing', name:'그리움',    def:'곁에 없는 사람·장소·시간을 다시 만나고 싶어 하는 정서', color:'#a685f0'},
+  {k:'love',    name:'사랑·헌신', def:'대상을 아끼고 그를 위해 자신을 내어 주려는 정서', color:'#f07aa6'},
+  {k:'han',     name:'원망·한',   def:'풀리지 않은 억울함과 서러움이 마음에 맺힌 정서', color:'#ef5f52'},
+  {k:'hope',    name:'희망·의지', def:'어려움 속에서도 앞으로 나아가려는 기대와 다짐', color:'#f2a93b'},
+  {k:'joy',     name:'기쁨·생동', def:'생명력과 즐거움이 차오르는 밝은 정서', color:'#f5d84a'},
+  {k:'calm',    name:'평온·관조', def:'한 걸음 물러서서 대상을 고요히 바라보는 정서', color:'#3fc59a'},
+  {k:'awe',     name:'경외·신비', def:'알 수 없는 큰 존재 앞에서 느끼는 경이로움과 숭고함', color:'#4fd1e0'},
+];
+
+/* =========================================================
+   2. 감정 사전 (Lexicon) — 범주마다 10개 이상, 어간 위주
+   ========================================================= */
+const LEX = {
+  sorrow:  ['슬프','슬피','슬픔','눈물','설움','서러','설워','죽','부서진','한숨','울음','우는','웁니다','운다','낡아','차디찬','이별','떠날'],
+  longing: ['그립','그리워','그리다','그리운','잊','님','고향','꿈','옛','찾으','기다리','부르','불러','이름','돌아보'],
+  love:    ['사랑','고이','당신','그대','진달래꽃','안고','안으면','아름','입맞추','복종','행복','달콤','예쁠','곱게','부드러운','엄마','누나','누이','아내','아버지'],
+  han:     ['역겨','원망','시샘','시새움','짓밟','즈려밟','빼앗','분노','남의 땅','의붓어미','답답','나무라','떨치','흙발','미친','절며'],
+  hope:    ['희망','다시','믿','의지','가자','호미','땀','살자','오실','정열','불붙','강하','지키','건너가'],
+  joy:     ['봄','기쁘','기쁨','웃','반갑','반짝','춤','뛰놀','생기','향기','금빛','금방울','금모래','햇살','즐거','좋아','좋은','달래','고맙'],
+  calm:    ['고요','저만치','혼자','산에','강변','강물','물결','시내','실개천','하늘','구름','이슬','도란도란','졸음','갈잎','흐르','바람'],
+  awe:     ['누구의','알 수 없','알지도 못','공중','수직','파문','근원','옛 탑','등불','신령','거룩','종교','전설','입김','저녁놀','영원'],
+};
+
+/* =========================================================
+   3. 시 15편 (Poem)
+   ※ 본문은 출처와 반드시 직접 대조할 것 (현대어 표기)
+   ========================================================= */
+const POEMS = [
+{
+  id:'azalea', title:'진달래꽃', poet:'김소월', year:'1922', poetDeath:1934,
+  source:'김소월, 『진달래꽃』, 매문사, 1925 (현대어 표기)',
+  theme:'이별의 슬픔을 인고와 헌신으로 승화', speaker:'떠나는 임을 붙잡지 않고 보내려는 여인',
+  devices:'반어법, 3음보 율격, 수미상관', key:'죽어도 아니 눈물 흘리우리다',
+  interp:'화자는 임이 자신을 싫어하여 떠나는 상황을 가정하고, 붙잡지 않고 꽃을 뿌려 보내겠다고 말한다. 꽃을 "즈려밟고" 가라는 말에는 자신을 밟고 가라는 희생적 헌신과 떠나는 임에 대한 서운함이 함께 담겨 있다. 마지막 연의 "죽어도 아니 눈물 흘리우리다"는 울지 않겠다는 다짐이지만, 그 다짐 자체가 참기 어려운 슬픔을 드러내는 반어이다. 첫 연과 끝 연을 거의 같게 되풀이하여 감정을 절제하면서 여운을 남긴다.',
+  profile:{love:.9, sorrow:.8, longing:.5, han:.4},
+  text:`나 보기가 역겨워
+가실 때에는
+말없이 고이 보내 드리우리다
+
+영변에 약산
+진달래꽃
+아름 따다 가실 길에 뿌리우리다
+
+가시는 걸음걸음
+놓인 그 꽃을
+사뿐히 즈려밟고 가시옵소서
+
+나 보기가 역겨워
+가실 때에는
+죽어도 아니 눈물 흘리우리다`
+},
+{
+  id:'chohon', title:'초혼', poet:'김소월', year:'1925', poetDeath:1934,
+  source:'김소월, 『진달래꽃』, 매문사, 1925 (현대어 표기)',
+  theme:'죽은 임에 대한 절절한 그리움과 슬픔', speaker:'죽은 임의 이름을 부르며 혼을 부르는 사람',
+  devices:'돈호법, 영탄법, 반복법, 전통 장례 의식(고복) 차용', key:'부르다가 내가 죽을 이름이여!',
+  interp:'제목 "초혼"은 사람이 죽었을 때 그 이름을 세 번 불러 혼을 부르는 전통 의식에서 왔다. 화자는 이미 세상을 떠난 임의 이름을 끝없이 부르지만, 하늘과 땅 사이가 너무 넓어 그 소리는 닿지 않는다. 생전에 끝내 하지 못한 한마디가 남아 있어 슬픔은 원망과 한으로까지 번진다. "부르다가 내가 죽을 이름이여"라는 구절은 죽음을 넘어서라도 임과 이어지려는 극한의 그리움을 보여 준다.',
+  profile:{sorrow:1, longing:.9, love:.6, han:.5},
+  text:`산산이 부서진 이름이여!
+허공 중에 헤어진 이름이여!
+불러도 주인 없는 이름이여!
+부르다가 내가 죽을 이름이여!
+
+심중에 남아 있는 말 한마디는
+끝끝내 마저 하지 못하였구나.
+사랑하던 그 사람이여!
+사랑하던 그 사람이여!
+
+붉은 해는 서산마루에 걸리었다.
+사슴의 무리도 슬피 운다.
+떨어져 나가 앉은 산 위에서
+나는 그대의 이름을 부르노라.
+
+설움에 겹도록 부르노라.
+설움에 겹도록 부르노라.
+부르는 소리는 비껴가지만
+하늘과 땅 사이가 너무 넓구나.
+
+산산이 부서진 이름이여!
+허공 중에 헤어진 이름이여!
+불러도 주인 없는 이름이여!
+부르다가 내가 죽을 이름이여!`
+},
+{
+  id:'sanyuhwa', title:'산유화', poet:'김소월', year:'1925', poetDeath:1934,
+  source:'김소월, 『진달래꽃』, 매문사, 1925 (현대어 표기)',
+  theme:'자연 속 존재의 근원적 고독과 생명의 순환', speaker:'산에 피고 지는 꽃을 바라보는 관찰자',
+  devices:'수미상관, 대칭 구조, 반복법', key:'저만치 혼자서 피어 있네',
+  interp:'첫 연에서 꽃이 피고 마지막 연에서 꽃이 지는 대칭 구조로 생명이 나고 사라지는 자연의 순환을 그린다. "갈 봄 여름 없이"라는 표현은 계절과 상관없이 되풀이되는 존재의 운명을 담담하게 보여 준다. 둘째 연의 "저만치 혼자서"는 꽃과 화자 사이의 거리, 곧 존재가 저마다 지닌 고독을 드러낸다. 꽃이 좋아 산에 사는 작은 새는 그 고독 속에서도 다른 존재와 이어지려는 마음을 상징한다.',
+  profile:{calm:.9, sorrow:.4, awe:.4, joy:.2},
+  text:`산에는 꽃 피네
+꽃이 피네
+갈 봄 여름 없이
+꽃이 피네
+
+산에
+산에
+피는 꽃은
+저만치 혼자서 피어 있네
+
+산에서 우는 작은 새요
+꽃이 좋아
+산에서
+사노라네
+
+산에는 꽃 지네
+꽃이 지네
+갈 봄 여름 없이
+꽃이 지네`
+},
+{
+  id:'eomma', title:'엄마야 누나야', poet:'김소월', year:'1922', poetDeath:1934,
+  source:'김소월, 『진달래꽃』, 매문사, 1925 (현대어 표기)',
+  theme:'평화로운 삶에 대한 소망', speaker:'엄마와 누나에게 강변에서 살자고 말하는 아이',
+  devices:'수미상관, 시각·청각 이미지, 4행의 짧은 형식', key:'엄마야 누나야 강변 살자',
+  interp:'어린아이의 목소리로 엄마, 누나와 함께 강변에서 살고 싶다는 소망을 노래한다. 반짝이는 금모래빛과 갈잎의 노래는 시각과 청각으로 그려 낸 이상적인 삶의 공간이다. "살자"는 청유형은 지금 그곳에 살고 있지 않다는 사실을 거꾸로 드러내어, 밝은 장면 뒤에 결핍과 그리움이 숨어 있다. 첫 행과 끝 행을 똑같이 반복하여 소망을 간절하게 강조한다.',
+  profile:{calm:.8, hope:.7, love:.5, joy:.5, longing:.3},
+  text:`엄마야 누나야 강변 살자
+뜰에는 반짝이는 금모래빛
+뒷문 밖에는 갈잎의 노래
+엄마야 누나야 강변 살자`
+},
+{
+  id:'ganeungil', title:'가는 길', poet:'김소월', year:'1923', poetDeath:1934,
+  source:'김소월, 『진달래꽃』, 매문사, 1925 (현대어 표기)',
+  theme:'임과 헤어지며 쉽게 떠나지 못하는 미련과 그리움', speaker:'임을 두고 떠나야 하는 사람',
+  devices:'행 나누기로 망설임 표현, 대조(머뭇거림과 재촉), 말줄임표', key:'그립다 / 말을 할까 / 하니 그리워',
+  interp:'짧게 끊어 놓은 1·2연의 행 구분은 떠나야 하면서도 발을 떼지 못하는 화자의 망설임을 그대로 보여 준다. "그립다 말을 할까 하니 그리워"는 말로 하려는 순간 그리움이 더 커지는 마음을 담았다. 3·4연에서는 해가 진다고 지저귀는 까마귀와 어서 따라오라는 강물이 화자를 재촉한다. 머뭇거리는 마음과 재촉하는 자연이 대조되어 이별의 안타까움이 더 커진다.',
+  profile:{longing:1, sorrow:.6, love:.4},
+  text:`그립다
+말을 할까
+하니 그리워
+
+그냥 갈까
+그래도
+다시 더 한 번……
+
+저 산에도 까마귀, 들에 까마귀
+서산에는 해 진다고
+지저귑니다.
+
+앞 강물, 뒷 강물
+흐르는 물은
+어서 따라오라고 따라가자고
+흘러도 연달아 흐릅디다려.`
+},
+{
+  id:'jeopdong', title:'접동새', poet:'김소월', year:'1923', poetDeath:1934,
+  source:'김소월, 『진달래꽃』, 매문사, 1925 (현대어 표기)',
+  theme:'억울하게 죽은 누나의 한과 혈육에 대한 정', speaker:'접동새 울음을 듣는 동생',
+  devices:'설화 차용, 의성어, 감정 이입', key:'죽어서도 못 잊어 차마 못 잊어',
+  interp:'의붓어미의 시샘으로 죽은 누나가 접동새가 되었다는 설화를 바탕으로 한다. "접동 접동 아우래비 접동"이라는 새 울음소리는 동생들을 부르는 누나의 목소리처럼 들린다. 누나는 죽어서도 아홉 동생을 잊지 못해 밤마다 이 산 저 산을 옮겨 다니며 운다. 개인의 비극을 민족 공동체가 함께 품어 온 한의 정서로 넓혀 보여 주는 작품이다.',
+  profile:{han:.9, sorrow:.9, love:.6, longing:.6},
+  text:`접동
+접동
+아우래비 접동
+
+진두강 가람가에 살던 누나는
+진두강 앞마을에
+와서 웁니다.
+
+옛날, 우리나라
+먼 뒤쪽의
+진두강 가람가에 살던 누나는
+의붓어미 시샘에 죽었습니다.
+
+누나라고 불러 보랴
+오오 불설워
+시새움에 몸이 죽은 우리 누나는
+죽어서 접동새가 되었습니다.
+
+아홉이나 남아 되는 오랍동생을
+죽어서도 못 잊어 차마 못 잊어
+야삼경 남 다 자는 밤이 깊으면
+이 산 저 산 옮아가며 슬피 웁니다.`
+},
+{
+  id:'meonhuil', title:'먼 후일', poet:'김소월', year:'1920', poetDeath:1934,
+  source:'김소월, 『진달래꽃』, 매문사, 1925 (현대어 표기)',
+  theme:'임을 결코 잊을 수 없는 역설적 그리움', speaker:'떠난 임을 기다리는 사람',
+  devices:'반어법, 반복법, 가정법', key:'오늘도 어제도 아니 잊고',
+  interp:'화자는 먼 훗날 임이 다시 찾아온다면 "잊었노라"고 말하겠다고 거듭 가정한다. 그러나 임이 나무랄 때마다 "무척 그리다가", "믿기지 않아서"라는 변명이 붙으며 잊지 못했다는 속마음이 드러난다. 마지막 연의 "오늘도 어제도 아니 잊고"에서 반어가 풀리며, "잊었노라"는 말이 사실은 끝없는 그리움의 표현이었음이 밝혀진다. 단순한 구조의 반복 속에서 감정이 점점 깊어진다.',
+  profile:{longing:1, love:.6, sorrow:.4},
+  text:`먼 훗날 당신이 찾으시면
+그때에 내 말이 "잊었노라"
+
+당신이 속으로 나무라면
+"무척 그리다가 잊었노라"
+
+그래도 당신이 나무라면
+"믿기지 않아서 잊었노라"
+
+오늘도 어제도 아니 잊고
+먼 훗날 그때에 "잊었노라"`
+},
+{
+  id:'silence', title:'님의 침묵', poet:'한용운', year:'1926', poetDeath:1944,
+  source:'한용운, 『님의 침묵』, 회동서관, 1926 (현대어 표기)',
+  theme:'이별의 슬픔을 재회의 희망으로 극복', speaker:'님을 떠나보낸 "나"',
+  devices:'역설법, 산문적 율격, 은유', key:'님은 갔지마는 나는 님을 보내지 아니하였습니다',
+  interp:'시는 "님은 갔습니다"라는 이별의 선언으로 시작하여, 굳은 맹세가 티끌이 되어 날아간 상실의 아픔을 그린다. 화자는 이별의 슬픔에 머물지 않고 그 슬픔의 힘을 "새 희망의 정수박이"에 들어붓는다. 만날 때 떠남을 염려하듯 떠날 때 다시 만남을 믿는다는 생각에서 이별을 재회의 출발점으로 바꾸는 역설이 나타난다. "님"은 연인뿐 아니라 조국, 진리 등으로도 읽을 수 있어 해석의 폭이 넓다.',
+  profile:{love:.9, hope:.8, sorrow:.7, longing:.6},
+  text:`님은 갔습니다. 아아, 사랑하는 나의 님은 갔습니다.
+푸른 산빛을 깨치고 단풍나무 숲을 향하여 난 작은 길을 걸어서 차마 떨치고 갔습니다.
+황금의 꽃같이 굳고 빛나던 옛 맹세는 차디찬 티끌이 되어서 한숨의 미풍에 날아갔습니다.
+날카로운 첫 키스의 추억은 나의 운명의 지침을 돌려놓고 뒷걸음쳐서 사라졌습니다.
+나는 향기로운 님의 말소리에 귀먹고 꽃다운 님의 얼굴에 눈멀었습니다.
+사랑도 사람의 일이라 만날 때에 미리 떠날 것을 염려하고 경계하지 아니한 것은 아니지만, 이별은 뜻밖의 일이 되고 놀란 가슴은 새로운 슬픔에 터집니다.
+그러나 이별을 쓸데없는 눈물의 원천을 만들고 마는 것은 스스로 사랑을 깨치는 것인 줄 아는 까닭에, 걷잡을 수 없는 슬픔의 힘을 옮겨서 새 희망의 정수박이에 들어부었습니다.
+우리는 만날 때에 떠날 것을 염려하는 것과 같이 떠날 때에 다시 만날 것을 믿습니다.
+아아, 님은 갔지마는 나는 님을 보내지 아니하였습니다.
+제 곡조를 못 이기는 사랑의 노래는 님의 침묵을 휩싸고 돕니다.`
+},
+{
+  id:'unknown', title:'알 수 없어요', poet:'한용운', year:'1926', poetDeath:1944,
+  source:'한용운, 『님의 침묵』, 회동서관, 1926 (현대어 표기)',
+  theme:'절대적 존재에 대한 경외와 구도의 의지', speaker:'자연 현상에서 "누구"의 자취를 느끼는 구도자',
+  devices:'설의법, 은유, 역설법, 반복되는 문장 구조', key:'타고 남은 재가 다시 기름이 됩니다',
+  interp:'화자는 오동잎, 푸른 하늘, 향기, 시냇물, 저녁놀 같은 자연 현상을 보며 그것이 "누구"의 발자취이고 얼굴이냐고 묻는다. 같은 형식의 질문을 되풀이하면서 눈에 보이지 않는 절대적 존재를 향한 경외감이 점점 커진다. 마지막 행의 "타고 남은 재가 다시 기름이 됩니다"는 소멸이 곧 새로운 생성이 된다는 불교적 역설이다. 화자는 스스로를 그 존재의 밤을 지키는 "약한 등불"로 여기며 끝없는 구도의 의지를 드러낸다.',
+  profile:{awe:1, hope:.6, calm:.5, love:.4},
+  text:`바람도 없는 공중에 수직의 파문을 내이며 고요히 떨어지는 오동잎은 누구의 발자취입니까.
+지리한 장마 끝에 서풍에 몰려가는 무서운 검은 구름의 터진 틈으로 언뜻언뜻 보이는 푸른 하늘은 누구의 얼굴입니까.
+꽃도 없는 깊은 나무에 푸른 이끼를 거쳐서 옛 탑 위의 고요한 하늘을 스치는 알 수 없는 향기는 누구의 입김입니까.
+근원은 알지도 못할 곳에서 나서 돌부리를 울리고 가늘게 흐르는 작은 시내는 구비구비 누구의 노래입니까.
+연꽃 같은 발꿈치로 갓이 없는 바다를 밟고 옥 같은 손으로 끝없는 하늘을 만지면서 떨어지는 날을 곱게 단장하는 저녁놀은 누구의 시입니까.
+타고 남은 재가 다시 기름이 됩니다. 그칠 줄을 모르고 타는 나의 가슴은 누구의 밤을 지키는 약한 등불입니까.`
+},
+{
+  id:'ferry', title:'나룻배와 행인', poet:'한용운', year:'1926', poetDeath:1944,
+  source:'한용운, 『님의 침묵』, 회동서관, 1926 (현대어 표기)',
+  theme:'희생과 인내를 통한 사랑', speaker:'자신을 나룻배에 빗댄 "나"',
+  devices:'은유법, 수미상관, 경어체', key:'나는 당신을 기다리면서 날마다 날마다 낡아 갑니다',
+  interp:'화자는 자신을 나룻배로, 당신을 행인으로 빗대어 두 사람의 관계를 그린다. 당신은 흙발로 나를 짓밟고 물을 건너면 돌아보지도 않지만, 나는 깊은 물이든 급한 여울이든 당신을 안고 건너간다. 바람과 눈비를 맞으며 낡아 가는 모습에는 대가를 바라지 않는 희생적 사랑과 기다림이 담겨 있다. 처음과 끝을 "나는 나룻배 / 당신은 행인"으로 맞춰 이 관계가 변함없이 이어질 것임을 보여 준다.',
+  profile:{love:1, longing:.6, hope:.4, sorrow:.4},
+  text:`나는 나룻배
+당신은 행인
+
+당신은 흙발로 나를 짓밟습니다.
+나는 당신을 안고 물을 건너갑니다.
+나는 당신을 안으면 깊으나 옅으나 급한 여울이나 건너갑니다.
+
+만일 당신이 아니 오시면 나는 바람을 쐬고 눈비를 맞으며 밤에서 낮까지 당신을 기다리고 있습니다.
+당신은 물만 건너면 나를 돌아보지도 않고 가십니다그려.
+그러나 당신이 언제든지 오실 줄만은 알아요.
+나는 당신을 기다리면서 날마다 날마다 낡아 갑니다.
+
+나는 나룻배
+당신은 행인`
+},
+{
+  id:'obey', title:'복종', poet:'한용운', year:'1926', poetDeath:1944,
+  source:'한용운, 『님의 침묵』, 회동서관, 1926 (현대어 표기)',
+  theme:'사랑하는 대상에 대한 자발적 복종', speaker:'"당신"에게만 복종하려는 "나"',
+  devices:'역설법, 경어체, 대조', key:'복종하고 싶은데 복종하는 것은 아름다운 자유보다도 달콤합니다',
+  interp:'남들이 자유를 사랑할 때 화자는 복종을 좋아한다고 말하여, 흔히 부정적으로 여기는 복종을 긍정하는 역설을 펼친다. 이 복종은 강요된 것이 아니라 스스로 원해서 하는 것이므로 자유보다 달콤한 행복이 된다. 그러나 당신이 다른 사람에게 복종하라고 하면 그것만은 따를 수 없다고 하여, 복종의 대상이 오직 당신 하나임을 분명히 한다. 사랑하는 대상에게 온전히 자신을 바치려는 굳은 의지가 드러나는 작품이다.',
+  profile:{love:1, joy:.4, hope:.4},
+  text:`남들은 자유를 사랑한다지마는, 나는 복종을 좋아하여요.
+자유를 모르는 것은 아니지만, 당신에게는 복종만 하고 싶어요.
+복종하고 싶은데 복종하는 것은 아름다운 자유보다도 달콤합니다. 그것이 나의 행복입니다.
+그러나 당신이 나더러 다른 사람을 복종하라면 그것만은 복종할 수가 없습니다.
+다른 사람을 복종하려면 당신에게 복종할 수가 없는 까닭입니다.`
+},
+{
+  id:'hyangsu', title:'향수', poet:'정지용', year:'1927', poetDeath:1950,
+  source:'『조선지광』 65호, 1927 / 『정지용 시집』, 시문학사, 1935 (현대어 표기)',
+  theme:'고향에 대한 그리움', speaker:'고향의 모습을 떠올리는 사람',
+  devices:'후렴 반복, 공감각적 이미지, 감각적 묘사', key:'그 곳이 차마 꿈엔들 잊힐 리야',
+  interp:'실개천, 얼룩백이 황소, 질화로, 늙으신 아버지, 어린 누이와 아내 등 고향의 풍경과 사람들을 차례로 떠올린다. "금빛 게으른 울음"처럼 청각을 시각으로 바꾸어 표현한 공감각적 이미지가 고향의 정겨움을 생생하게 만든다. 각 연 끝에 "그 곳이 차마 꿈엔들 잊힐 리야"를 되풀이하여 고향을 잊을 수 없다는 마음을 점점 강하게 드러낸다. 마지막 연의 초라한 지붕과 흐릿한 불빛은 가난하지만 따뜻했던 고향을 상징한다.',
+  profile:{longing:1, calm:.6, love:.4, sorrow:.3},
+  text:`넓은 벌 동쪽 끝으로
+옛이야기 지줄대는 실개천이 회돌아 나가고,
+얼룩백이 황소가
+해설피 금빛 게으른 울음을 우는 곳,
+
+―그 곳이 차마 꿈엔들 잊힐 리야.
+
+질화로에 재가 식어지면
+비인 밭에 밤바람 소리 말을 달리고,
+엷은 졸음에 겨운 늙으신 아버지가
+짚베개를 돋아 고이시는 곳,
+
+―그 곳이 차마 꿈엔들 잊힐 리야.
+
+흙에서 자란 내 마음
+파아란 하늘 빛이 그리워
+함부로 쏜 화살을 찾으려
+풀섶 이슬에 함초롬 휘적시던 곳,
+
+―그 곳이 차마 꿈엔들 잊힐 리야.
+
+전설 바다에 춤추는 밤물결 같은
+검은 귀밑머리 날리는 어린 누이와
+아무렇지도 않고 예쁠 것도 없는
+사철 발 벗은 아내가
+따가운 햇살을 등에 지고 이삭 줍던 곳,
+
+―그 곳이 차마 꿈엔들 잊힐 리야.
+
+하늘에는 성근 별
+알 수도 없는 모래성으로 발을 옮기고,
+서리 까마귀 우지짖고 지나가는
+초라한 지붕, 흐릿한 불빛에 돌아앉아 도란도란거리는 곳,
+
+―그 곳이 차마 꿈엔들 잊힐 리야.`
+},
+{
+  id:'spring', title:'빼앗긴 들에도 봄은 오는가', poet:'이상화', year:'1926', poetDeath:1943,
+  source:'『개벽』 70호, 1926 (현대어 표기)',
+  theme:'국권 상실의 비애와 국토에 대한 사랑', speaker:'봄 들판을 걷는 식민지의 지식인',
+  devices:'의인화, 설의법, 처음과 끝의 질문과 답', key:'그러나 지금은―들을 빼앗겨 봄조차 빼앗기겠네',
+  interp:'첫 행에서 "빼앗긴 들에도 봄은 오는가"라고 묻고, 화자는 꿈속을 가듯 봄 들판을 걷는다. 종다리, 보리밭, 도랑, 맨드라미 같은 자연은 생명력으로 가득하고 화자도 그 기쁨에 젖어 호미를 쥐고 땀 흘리고 싶어 한다. 그러나 "푸른 웃음 푸른 설움"이 어우러진다는 표현처럼 기쁨 속에는 나라 잃은 설움이 함께 있다. 마지막 행에서 "봄조차 빼앗기겠네"라고 답하며 국토를 빼앗긴 현실에 대한 비통함과 저항 의식을 드러낸다.',
+  profile:{han:.8, love:.7, sorrow:.6, joy:.5, hope:.4},
+  text:`지금은 남의 땅―빼앗긴 들에도 봄은 오는가?
+
+나는 온몸에 햇살을 받고
+푸른 하늘 푸른 들이 맞붙은 곳으로
+가르마 같은 논길을 따라 꿈속을 가듯 걸어만 간다.
+
+입술을 다문 하늘아 들아
+내 맘에는 나 혼자 온 것 같지를 않구나!
+네가 끌었느냐 누가 부르더냐 답답워라 말을 해다오.
+
+바람은 내 귀에 속삭이며
+한 자국도 섰지 마라 옷자락을 흔들고
+종다리는 울타리 너머 아씨같이 구름 뒤에서 반갑다 웃네.
+
+고맙게 잘 자란 보리밭아
+간밤 자정이 넘어 내리던 고운 비로
+너는 삼단 같은 머리를 감았구나 내 머리조차 가뿐하다.
+
+혼자라도 가쁘게나 가자
+마른 논을 안고 도는 착한 도랑이
+젖먹이 달래는 노래를 하고 제 혼자 어깨춤만 추고 가네.
+
+나비 제비야 깝치지 마라
+맨드라미 들마꽃에도 인사를 해야지
+아주까리기름을 바른 이가 지심 매던 그 들이라 다 보고 싶다.
+
+내 손에 호미를 쥐어 다오
+살진 젖가슴과 같은 부드러운 이 흙을
+발목이 시도록 밟아도 보고 좋은 땀조차 흘리고 싶다.
+
+강가에 나온 아이와 같이
+짬도 모르고 끝도 없이 닫는 내 혼아
+무엇을 찾느냐 어디로 가느냐 웃어웁다 답을 하려무나.
+
+나는 온몸에 풋내를 띠고
+푸른 웃음 푸른 설움이 어우러진 사이로
+다리를 절며 하루를 걷는다 아마도 봄 신령이 지폈나 보다.
+
+그러나 지금은―들을 빼앗겨 봄조차 빼앗기겠네.`
+},
+{
+  id:'nongae', title:'논개', poet:'변영로', year:'1924', poetDeath:1961,
+  source:'변영로, 『조선의 마음』, 평문관, 1924 (현대어 표기)',
+  theme:'논개의 의로운 죽음과 애국심 예찬', speaker:'논개의 희생을 기리는 사람',
+  devices:'비교법, 색채 대비(푸른 물결과 붉은 마음), 후렴 반복', key:'거룩한 분노는 / 종교보다도 깊고',
+  interp:'임진왜란 때 적장을 끌어안고 강물에 몸을 던진 논개의 희생을 기리는 시이다. 첫 연에서 논개의 분노를 "거룩한" 것으로, 정열을 사랑보다 강한 것으로 높여 개인의 감정을 넘어선 숭고한 의지로 그린다. "강낭콩꽃보다도 더 푸른 물결"과 "양귀비꽃보다도 더 붉은 마음"의 색채 대비가 후렴으로 되풀이되어 논개의 뜨거운 마음을 선명하게 각인한다. 마지막 연은 강물이 영원히 푸르듯 논개의 혼도 영원히 붉게 남을 것이라며 그 정신을 기린다.',
+  profile:{hope:.8, awe:.7, love:.6, han:.5, sorrow:.3},
+  text:`거룩한 분노는
+종교보다도 깊고
+불붙는 정열은
+사랑보다도 강하다.
+아, 강낭콩꽃보다도 더 푸른
+그 물결 위에
+양귀비꽃보다도 더 붉은
+그 마음 흘러라.
+
+아리땁던 그 아미
+높게 흔들리우며
+그 석류 속 같은 입술
+죽음을 입맞추었네!
+아, 강낭콩꽃보다도 더 푸른
+그 물결 위에
+양귀비꽃보다도 더 붉은
+그 마음 흘러라.
+
+흐르는 강물은
+길이길이 푸르리니
+그대의 꽃다운 혼
+어이 아니 붉으랴.
+아, 강낭콩꽃보다도 더 푸른
+그 물결 위에
+양귀비꽃보다도 더 붉은
+그 마음 흘러라.`
+},
+{
+  id:'cat', title:'봄은 고양이로다', poet:'이장희', year:'1924', poetDeath:1929,
+  source:'『금성』 3호, 1924 (현대어 표기)',
+  theme:'고양이를 통해 감각적으로 느끼는 봄', speaker:'고양이를 가만히 바라보는 관찰자',
+  devices:'은유법, 감각적 이미지, 대구', key:'고요히 다물은 고양이의 입술에 / 포근한 봄 졸음이 떠돌아라',
+  interp:'제목처럼 봄을 고양이에 빗대어, 고양이의 털·눈·입술·수염 하나하나에서 봄의 모습을 찾아낸다. 부드러운 털에서는 봄의 향기를, 동그란 눈에서는 봄의 불길을 느끼는 등 촉각과 시각이 어우러진다. 2행씩 네 연이 같은 문장 구조로 짜여 있어 정돈된 리듬감을 준다. 봄의 나른함(졸음)과 생동감(생기)이 함께 그려져 있어 평온함과 활기가 공존하는 봄의 감각을 전한다.',
+  profile:{joy:.9, calm:.6, awe:.2},
+  text:`꽃가루와 같이 부드러운 고양이의 털에
+고운 봄의 향기가 어리우도다.
+
+금방울과 같이 호동그란 고양이의 눈에
+미친 봄의 불길이 흐르도다.
+
+고요히 다물은 고양이의 입술에
+포근한 봄 졸음이 떠돌아라.
+
+날카롭게 쭉 뻗은 고양이의 수염에
+푸른 봄의 생기가 뛰놀아라.`
+},
+];
+
+/* =========================================================
+   4. 분석 엔진
+   ========================================================= */
+const EK = EMOS.map(e => e.k);
+const WORD2EMO = new Map();
+for (const e of EMOS) for (const w of LEX[e.k]) if (!WORD2EMO.has(w)) WORD2EMO.set(w, e.k);
+// 긴 시어부터 맞추어 '옛 탑'과 '옛'처럼 겹치는 시어가 두 번 세어지지 않게 함
+const WORDS = [...WORD2EMO.keys()].sort((a, b) => b.length - a.length);
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const LEX_RE = new RegExp(WORDS.map(escRe).join('|'), 'g');
+
+// 5.1 전처리 + 5.2 사전 매칭 + 5.3 시 단위 비율
+function analyzeText(text) {
+  const lines = []; let no = 0;
+  const sums = new Array(EK.length).fill(0);
+  for (const raw of text.split('\n')) {
+    const t = raw.trim();
+    if (!t) continue;                 // 빈 줄은 연 구분 → 분석 제외
+    no++;
+    const counts = new Array(EK.length).fill(0), hits = [];
+    for (const m of t.matchAll(LEX_RE)) {
+      const i = EK.indexOf(WORD2EMO.get(m[0]));
+      counts[i]++; sums[i]++; hits.push(m[0]);
+    }
+    lines.push({ no, text: t, counts, hits });
+  }
+  const total = sums.reduce((a, b) => a + b, 0);
+  return { lines, vlex: total ? sums.map(s => s / total) : sums.map(() => 0), total };
+}
+function normalize(v) { const s = v.reduce((a, b) => a + b, 0); return s ? v.map(x => x / s) : v.map(() => 0); }
+// 5.4 해석 프로필과 결합: v = normalize((1-w)·p̂ + w·v_lex)
+function combine(vlex, profile, w) {
+  if (!profile) return vlex.slice();
+  const p = normalize(EK.map(k => profile[k] || 0));
+  return normalize(p.map((x, i) => (1 - w) * x + w * vlex[i]));
+}
+function argmaxK(v) { let bi = -1, bv = 0; v.forEach((x, i) => { if (x > bv) { bv = x; bi = i; } }); return bi < 0 ? null : EK[bi]; }
+// 5.5 코사인 유사도
+function cosine(a, b) {
+  let d = 0, na = 0, nb = 0;
+  for (let i = 0; i < a.length; i++) { d += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+  return na && nb ? d / Math.sqrt(na * nb) : 0;
+}
+// 반올림해도 합계가 정확히 100이 되도록 (최대 잔여 방식)
+function round100(v) {
+  const s = v.reduce((a, b) => a + b, 0);
+  if (!s) return v.map(() => 0);
+  const raw = v.map(x => x / s * 100), fl = raw.map(Math.floor);
+  let rest = 100 - fl.reduce((a, b) => a + b, 0);
+  raw.map((x, i) => [x - fl[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (rest > 0) { fl[i]++; rest--; } });
+  return fl;
+}
+// 3.4 분석 결과(Result) 구조
+function computePoem(p, w) {
+  const a = analyzeText(p.text);
+  const vec = combine(a.vlex, p.profile, w);
+  return { id: p.id, vec, vlex: a.vlex, dominant: argmaxK(vec), lines: a.lines, total: a.total,
+           method: p.profile ? 'hybrid' : 'lexicon' };
+}
+
+/* =========================================================
+   5. 화면
+   ========================================================= */
+if (typeof document !== 'undefined') {
+  const $ = s => document.querySelector(s);
+  const emo = k => EMOS.find(e => e.k === k);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; };
+
+  const state = { w: 0.5, sel: POEMS[0].id, custom: null, results: {} };
+
+  function recompute() { for (const p of POEMS) state.results[p.id] = computePoem(p, state.w); }
+  function current() {
+    if (state.custom) return state.custom;
+    const p = POEMS.find(x => x.id === state.sel);
+    return { ...p, res: state.results[p.id], isCustom: false };
+  }
+  function recommend(item) {
+    if (!item.res.vec.some(x => x > 0)) return [];
+    return POEMS.filter(p => item.isCustom || p.id !== item.id)
+      .map(p => ({ p, sim: cosine(item.res.vec, state.results[p.id].vec) }))
+      .sort((a, b) => b.sim - a.sim).slice(0, 3);
+  }
+  const hl = line => esc(line).replace(LEX_RE, m => {
+    const e = emo(WORD2EMO.get(m)); return `<mark style="--c:${e.color}" title="${e.name}">${m}</mark>`;
+  });
+
+  /* F-01 시 목록 */
+  function renderBar() {
+    $('#poemBar').innerHTML = POEMS.map(p => {
+      const r = state.results[p.id], e = r.dominant ? emo(r.dominant) : null;
+      const on = !state.custom && p.id === state.sel;
+      return `<button type="button" class="chip${on ? ' on' : ''}" data-id="${p.id}" aria-pressed="${on}">
+        <span class="dot" style="background:${e ? e.color : '#777'}" title="지배 정서: ${e ? e.name : '-'}"></span>
+        <span class="ct">${esc(p.title)}</span><span class="cm">${esc(p.poet)} · ${p.year}</span></button>`;
+    }).join('');
+  }
+
+  /* F-02 본문 보기 */
+  function renderText(item) {
+    let html = '', stanza = [], no = 0;
+    const flush = () => { if (stanza.length) { html += `<p class="stz">${stanza.join('')}</p>`; stanza = []; } };
+    for (const raw of item.text.split('\n')) {
+      const t = raw.trim();
+      if (!t) { flush(); continue; }
+      no++; stanza.push(`<span class="ln"><i>${no}</i>${hl(t)}</span>`);
+    }
+    flush();
+    const used = EK.filter((k, i) => item.res.lines.some(l => l.counts[i] > 0));
+    $('#cText').innerHTML = `
+      <h2 class="ptitle">${esc(item.title)}</h2>
+      <p class="pmeta">${item.isCustom ? '직접 입력한 시' : `${esc(item.poet)} · ${item.year}년 발표 · 시인 사망 ${item.poetDeath}년`}</p>
+      <div class="poem">${html}</div>
+      ${used.length ? `<div class="legend">맞춘 시어: ${used.map(k => `<span style="--c:${emo(k).color}">${emo(k).name}</span>`).join('')}</div>`
+                    : `<p class="empty">감정 사전과 일치한 시어가 없습니다.</p>`}
+      ${item.isCustom ? '' : `<p class="src">출처: ${esc(item.source)}</p>`}`;
+  }
+
+  /* F-03 감정 비율 · F-05 지배 정서와 해석 */
+  function renderSummary(item) {
+    const r = item.res, pct = round100(r.vec);
+    if (!r.vec.some(x => x > 0)) {
+      $('#cSum').innerHTML = `<h2>지배 정서</h2><p class="empty">감지된 감정 시어가 없어 비율을 계산할 수 없습니다. 감정이 드러나는 낱말(예: 그립다, 눈물, 봄, 사랑)이 들어간 시를 입력해 보세요.</p>`;
+      return;
+    }
+    const order = EK.map((k, i) => i).sort((a, b) => pct[b] - pct[a]);
+    const d = emo(EK[order[0]]), s = emo(EK[order[1]]);
+    const note = item.isCustom ? '감정 사전만으로 분석했습니다.'
+      : `최종 비율 = 해석 프로필 × ${Math.round((1 - state.w) * 100)}% + 감정 사전 × ${Math.round(state.w * 100)}% · 감지 시어 ${r.total}개`;
+    $('#cSum').innerHTML = `
+      <p class="sub">지배 정서</p>
+      <div class="dom"><b style="color:${d.color}">${d.name}</b>
+        <span class="pill">${pct[order[0]]}%</span>
+        ${pct[order[1]] > 0 ? `<span class="pill" style="color:${s.color}">${s.name} ${pct[order[1]]}%</span>` : ''}</div>
+      <div class="bars" role="list" aria-label="정서별 비율">
+        ${order.map(i => `<div class="bar" role="listitem"><span>${EMOS[i].name}</span>
+          <div class="tr"><div class="fill" style="width:${pct[i]}%;background:${EMOS[i].color}"></div></div>
+          <span class="v">${pct[i]}%</span></div>`).join('')}
+      </div>
+      <p class="sum">합계 ${pct.reduce((a, b) => a + b, 0)}%</p>
+      <dl class="meta"><dt>주제</dt><dd>${esc(item.theme)}</dd><dt>화자</dt><dd>${esc(item.speaker)}</dd><dt>표현</dt><dd>${esc(item.devices)}</dd></dl>
+      <p class="sub" style="margin:0">감상과 해석</p>
+      <p class="interp">${esc(item.interp)}</p>
+      <blockquote>${esc(item.key)}</blockquote>
+      <p class="method">${note}</p>`;
+  }
+
+  /* F-06 감정 프로필 레이더 */
+  function renderRadar(item, rec) {
+    const W = 380, H = 330, cx = 190, cy = 160, R = 112, n = EK.length;
+    const v1 = item.res.vec, v2 = rec ? state.results[rec.p.id].vec : null;
+    const mx = Math.max(0.4, Math.ceil(Math.max(...v1, ...(v2 || [0])) * 10) / 10);
+    const pt = (i, r) => { const a = -Math.PI / 2 + 2 * Math.PI * i / n; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+    let g = '';
+    for (let k = 1; k <= 4; k++) {
+      const pts = EK.map((_, i) => pt(i, R * k / 4).join(',')).join(' ');
+      g += `<polygon points="${pts}" fill="none" stroke="#323a50"/>`;
+      const [tx, ty] = pt(0, R * k / 4);
+      g += `<text x="${tx + 4}" y="${ty + 4}" font-size="10" class="mut">${Math.round(mx * 100 * k / 4)}%</text>`;
+    }
+    EMOS.forEach((e, i) => {
+      const [x, y] = pt(i, R); g += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#323a50"/>`;
+      const [lx, ly] = pt(i, R + 20), c = Math.cos(-Math.PI / 2 + 2 * Math.PI * i / n);
+      const anc = Math.abs(c) < .2 ? 'middle' : c > 0 ? 'start' : 'end';
+      g += `<text x="${lx}" y="${ly + 4}" font-size="12" text-anchor="${anc}" fill="${e.color}">${e.name}</text>`;
+    });
+    const poly = (v, color, dash) => {
+      const pts = v.map((x, i) => pt(i, R * Math.min(x, mx) / mx).join(',')).join(' ');
+      return `<polygon points="${pts}" fill="${dash ? 'none' : rgba(color, .22)}" stroke="${color}" stroke-width="2" ${dash ? 'stroke-dasharray="5 4"' : ''}/>`;
+    };
+    if (v2) g += poly(v2, '#a9a293', true);
+    g += poly(v1, '#e0b25c', false);
+    $('#cRadar').innerHTML = `<h2>감정 프로필</h2><p class="sub">8대 정서 비율(%) · 실선은 선택한 시, 점선은 추천 1위</p>
+      <div class="chartbox"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;display:block;margin:auto" role="img" aria-label="감정 프로필 레이더 차트">${g}</svg></div>
+      <div class="legend"><span style="--c:#e0b25c">「${esc(item.title)}」</span>${rec ? `<span class="dash" style="--c:#a9a293">추천 1위 「${esc(rec.p.title)}」</span>` : ''}</div>`;
+  }
+
+  /* F-04 행별 감정 · F-07 행별 감정 흐름 차트 */
+  function renderFlow(item) {
+    const L = item.res.lines, bw = 16, gap = 8, pl = 30, pb = 26, pt = 12, ch = 170;
+    const maxC = Math.max(1, ...L.map(l => l.counts.reduce((a, b) => a + b, 0)));
+    const W = pl + L.length * (bw + gap) + 10, H = pt + ch + pb;
+    const step = maxC > 6 ? 2 : 1;
+    let g = '';
+    for (let t = 0; t <= maxC; t += step) {
+      const y = pt + ch - ch * t / maxC;
+      g += `<line x1="${pl}" x2="${W - 4}" y1="${y}" y2="${y}" stroke="#323a50"/><text x="${pl - 6}" y="${y + 4}" font-size="10" text-anchor="end" class="mut">${t}</text>`;
+    }
+    L.forEach((l, j) => {
+      const x = pl + j * (bw + gap) + gap / 2; let y = pt + ch;
+      let bars = '';
+      l.counts.forEach((c, i) => { if (!c) return; const h = ch * c / maxC; y -= h; bars += `<rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="${EMOS[i].color}" rx="2"/>`; });
+      const tip = `${l.no}행: ${l.text}\n감지 시어: ${l.hits.length ? l.hits.join(', ') : '없음'}`;
+      g += `<g><title>${esc(tip)}</title><rect x="${x - 3}" y="${pt}" width="${bw + 6}" height="${ch}" fill="transparent"/>${bars}</g>`;
+      if (L.length <= 30 || l.no % 2 === 1) g += `<text x="${x + bw / 2}" y="${pt + ch + 16}" font-size="10" text-anchor="middle" class="mut">${l.no}</text>`;
+    });
+    const used = EK.filter((k, i) => L.some(l => l.counts[i] > 0));
+    const rows = L.map(l => `<tr><td>${l.no}</td><td>${esc(l.text)}</td><td>${
+      l.hits.length ? l.hits.map(h => { const e = emo(WORD2EMO.get(h)); return `<span class="tag" style="background:${e.color}">${esc(h)}·${e.name}</span>`; }).join('') : '<span class="mut">—</span>'}</td></tr>`).join('');
+    $('#cFlow').innerHTML = `<h2>행별 감정 흐름</h2><p class="sub">가로축 행 번호 · 세로축 그 행에서 감지된 시어 수 (막대에 마우스를 올리면 행 원문)</p>
+      ${item.res.total ? `<div class="chartbox"><svg viewBox="0 0 ${W} ${H}" width="${Math.max(W, 300)}" height="${H}" role="img" aria-label="행별 감정 누적 막대 차트">${g}</svg></div>
+      <div class="legend">${used.map(k => `<span style="--c:${emo(k).color}">${emo(k).name}</span>`).join('')}</div>`
+      : `<p class="empty">감지된 시어가 없어 행별 흐름을 그릴 수 없습니다.</p>`}
+      <details><summary>행별 감정 표 보기</summary><table class="ltab"><thead><tr><th>행</th><th>본문</th><th>감지 시어 · 정서</th></tr></thead><tbody>${rows}</tbody></table></details>`;
+  }
+
+  /* F-08 시어–감정–주제 다이어그램 */
+  function renderDiagram(item) {
+    const r = item.res;
+    if (!r.total) { $('#cDiagram').innerHTML = `<h2>시어 → 정서 → 주제</h2><p class="empty">감지된 시어가 없어 다이어그램을 그릴 수 없습니다.</p>`; return; }
+    const cnt = new Map();
+    r.lines.forEach(l => l.hits.forEach(h => cnt.set(h, (cnt.get(h) || 0) + 1)));
+    const words = [...cnt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 9);
+    const pct = round100(r.vec);
+    const emos = EK.map((k, i) => i).filter(i => pct[i] > 0).sort((a, b) => pct[b] - pct[a]);
+    const W = 760, H = Math.max(280, words.length * 32 + 40);
+    const wy = words.map((_, j) => 30 + j * ((H - 50) / Math.max(1, words.length - 1 || 1)));
+    const usable = H - 40 - (emos.length - 1) * 8;
+    let yy = 20; const eb = {};
+    emos.forEach(i => { const h = Math.max(16, usable * pct[i] / 100); eb[i] = { y: yy, h }; yy += h + 8; });
+    const scale = (H - 20) / Math.max(H - 20, yy); // 넘치면 축소
+    emos.forEach(i => { eb[i].y = 10 + (eb[i].y - 20) * scale + 10; eb[i].h *= scale; });
+    const tx = 520, ty = 40, tw = 230, th = H - 80;
+    let g = '';
+    words.forEach(([w, c], j) => {
+      const i = EK.indexOf(WORD2EMO.get(w)), e = EMOS[i], b = eb[i];
+      if (!b) return;
+      const y1 = wy[j], y2 = b.y + b.h / 2;
+      g += `<path d="M150 ${y1} C 240 ${y1}, 240 ${y2}, 318 ${y2}" stroke="${rgba(e.color, .7)}" stroke-width="${1.5 + c}" fill="none"/>`;
+      g += `<text x="142" y="${y1 + 4}" text-anchor="end" font-size="13">${esc(w)} <tspan class="mut" font-size="11">×${c}</tspan></text>`;
+    });
+    emos.forEach(i => {
+      const e = EMOS[i], b = eb[i];
+      g += `<path d="M330 ${b.y + b.h / 2} C 430 ${b.y + b.h / 2}, 430 ${ty + th / 2}, ${tx} ${ty + th / 2}" stroke="${rgba(e.color, .35)}" stroke-width="${Math.max(2, pct[i] * .5)}" fill="none"/>`;
+      g += `<rect x="318" y="${b.y}" width="12" height="${b.h}" rx="3" fill="${e.color}"/>`;
+      g += `<text x="338" y="${b.y + b.h / 2}" font-size="12" font-weight="700">${e.name}</text><text x="338" y="${b.y + b.h / 2 + 14}" font-size="11" class="mut">${pct[i]}%</text>`;
+    });
+    const d = emo(EK[emos[0]]);
+    g += `<rect x="${tx}" y="${ty}" width="${tw}" height="${th}" rx="12" fill="#232a3d" stroke="#323a50"/>
+      <foreignObject x="${tx + 12}" y="${ty + 12}" width="${tw - 24}" height="${th - 24}">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="color:#ece6d8;font-size:13px;line-height:1.5">
+          <div style="font-family:'Gowun Batang',serif;font-size:18px;font-weight:700;margin-bottom:8px">${esc(item.theme)}</div>
+          <div style="color:#a9a293;font-size:11px">지배 정서</div><div style="color:${d.color};font-weight:700;margin-bottom:6px">${d.name} ${pct[emos[0]]}%</div>
+          <div style="color:#a9a293;font-size:11px">표현</div><div>${esc(item.devices)}</div>
+        </div></foreignObject>`;
+    g += `<text x="142" y="14" text-anchor="end" font-size="11" class="mut">핵심 시어</text><text x="318" y="14" font-size="11" class="mut">정서</text><text x="${tx}" y="${ty - 10}" font-size="11" class="mut">주제</text>`;
+    $('#cDiagram').innerHTML = `<h2>시어 → 정서 → 주제</h2><p class="sub">어떤 시어가 어떤 정서의 근거가 되었고, 그 정서가 어떤 주제로 모이는지 보여 줍니다 (선 굵기 = 등장 횟수·비율)</p>
+      <div class="chartbox"><svg viewBox="0 0 ${W} ${H}" width="100%" style="min-width:600px" role="img" aria-label="시어 정서 주제 다이어그램">${g}</svg></div>`;
+  }
+
+  /* F-09 유사 감성 시 추천 */
+  function renderRec(item, recs) {
+    if (!recs.length) { $('#cRec').innerHTML = `<h2>비슷한 감성의 시</h2><p class="empty">감정 비율을 계산할 수 없어 추천할 시가 없습니다.</p>`; return; }
+    const top2 = v => EK.map((k, i) => i).sort((a, b) => v[b] - v[a]).slice(0, 2);
+    $('#cRec').innerHTML = `<h2>비슷한 감성의 시</h2><p class="sub">감정 비율 벡터의 코사인 유사도가 높은 3편 · 누르면 그 시로 이동</p>
+      <div class="recs">${recs.map((r, j) => {
+        const v = state.results[r.p.id].vec, a = top2(item.res.vec), b = top2(v);
+        const common = a.filter(i => b.includes(i)).map(i => EMOS[i].name);
+        return `<button type="button" class="rec" data-id="${r.p.id}"><span class="rk">추천 ${j + 1}</span>
+          <h3>${esc(r.p.title)}</h3><p class="rm">${esc(r.p.poet)} · ${esc(r.p.theme)}</p>
+          <div class="simbar"><div style="width:${Math.round(r.sim * 100)}%"></div></div>
+          <p class="rm"><b style="color:var(--accent)">유사도 ${Math.round(r.sim * 100)}%</b> · 공통 정서: ${common.length ? common.join(', ') : '—'}</p></button>`;
+      }).join('')}</div>`;
+  }
+
+  /* F-10 전체 비교 히트맵 */
+  function renderHeat() {
+    const rows = POEMS.map(p => {
+      const pct = round100(state.results[p.id].vec), on = !state.custom && p.id === state.sel;
+      return `<tr data-id="${p.id}" class="${on ? 'on' : ''}"><td class="name">${esc(p.title)}</td>${
+        pct.map((v, i) => `<td style="background:${rgba(EMOS[i].color, Math.min(1, v / 50) * .85)};color:${v > 30 ? '#111' : '#ece6d8'}">${v}</td>`).join('')}</tr>`;
+    }).join('');
+    $('#cHeat').innerHTML = `<h2>전체 비교</h2><p class="sub">시 × 정서 비율(%) · 색이 진할수록 비율이 높음 · 행을 누르면 그 시로 이동</p>
+      <div class="heatwrap"><table class="heat"><thead><tr><th></th>${EMOS.map(e => `<th style="color:${e.color}">${e.name}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  function render() {
+    const item = current();
+    const recs = recommend(item);
+    renderBar(); renderText(item); renderSummary(item); renderRadar(item, recs[0]);
+    renderFlow(item); renderDiagram(item); renderRec(item, recs); renderHeat();
+  }
+  function select(id) { state.custom = null; state.sel = id; render(); }
+
+  /* 이벤트 */
+  $('#poemBar').addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) select(b.dataset.id); });
+  $('#cRec').addEventListener('click', e => { const b = e.target.closest('.rec'); if (b) { select(b.dataset.id); $('#cText').scrollIntoView({ behavior: 'smooth' }); } });
+  $('#cHeat').addEventListener('click', e => { const tr = e.target.closest('tr[data-id]'); if (tr) { select(tr.dataset.id); $('#cText').scrollIntoView({ behavior: 'smooth' }); } });
+  $('#wRange').addEventListener('input', e => { state.w = e.target.value / 100; $('#wVal').textContent = e.target.value + '%'; recompute(); render(); });
+  $('#openLab').addEventListener('click', () => $('#lab').classList.toggle('open'));
+
+  /* F-11 직접 입력한 시 분석 */
+  $('#runMy').addEventListener('click', () => {
+    const title = $('#myTitle').value.trim() || '제목 없는 시';
+    const text = $('#myText').value.replace(/\r/g, '').trim();
+    if (!text) { $('#myMsg').textContent = '시 본문을 입력해 주세요. 빈 입력은 분석하지 않습니다.'; $('#myText').focus(); return; }
+    const a = analyzeText(text);
+    const vec = a.vlex.slice();
+    const res = { id: 'custom', vec, vlex: a.vlex, dominant: argmaxK(vec), lines: a.lines, total: a.total, method: 'lexicon' };
+    const pct = round100(vec);
+    const d = res.dominant ? emo(res.dominant) : null;
+    const words = [...new Set(a.lines.flatMap(l => l.hits))].slice(0, 6);
+    state.custom = {
+      id: 'custom', title, isCustom: true, text,
+      theme: d ? `${d.name} 중심의 정서` : '감지된 정서 없음',
+      speaker: '직접 입력한 시 (사전 기반 분석)', devices: '—',
+      key: a.lines[0] ? a.lines[0].text : '',
+      interp: d ? `감정 사전으로 분석하면 이 시는 '${d.name}'(${pct[EK.indexOf(d.k)]}%)의 정서가 가장 두드러집니다. 판단의 근거가 된 시어는 ${words.map(w => `'${w}'`).join(', ')}입니다. 사전 기반 분석은 낱말만 보기 때문에 반어나 역설은 읽지 못하므로, 해석은 시의 문맥과 함께 확인해야 합니다.`
+               : '감정 사전과 일치한 시어가 없어 정서를 판단하지 못했습니다. 감정 사전에 없는 낱말로 정서를 표현했을 수 있습니다.',
+      res,
+    };
+    $('#myMsg').textContent = a.total ? `분석 완료 · 감지 시어 ${a.total}개` : '감지된 감정 시어가 없습니다. 아래 안내를 확인하세요.';
+    render();
+    $('#cText').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  recompute();
+  render();
+}
+</script>
+</body>
+</html>
